@@ -1,0 +1,123 @@
+#!/usr/bin/python
+
+import sys
+
+class bcolors:
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    ENDC = '\033[0m'
+
+def squareRoot(d):
+    i = 50
+    a = d
+    n = 0
+    while n * n < a:
+        n += 0.5
+    while i > 0:
+        i -= 1
+        n = (n + (a / n)) / (2)
+    return n
+
+def isolateNumber(x):
+    if not x:
+        return 0
+    return float(x.split('X')[0].strip())
+
+def parseValue(string):
+    arr = string.replace(' * ', '').replace(' - ', ' -')
+    arr = arr.replace(' + ',' ').replace('--','').replace('  ', ' ').strip().split(' ')
+    arr = [ isolateNumber(x) for x in arr ]
+    return arr
+
+def inverseParse(x):
+    rtn = ''
+    i = 0
+    for value in x:
+        if value:
+            if (i >= 1) :
+                rtn += '+ '
+        if value != 0:
+            rtn += str(value) + ' * X^' + str(i) + ' '
+        i += 1
+    rtn += '= 0'
+    return rtn.replace('+ -', '- ').replace('.0 ', ' ')
+
+def secondDegree(reduced):
+    delta = (reduced[1] * reduced[1]) - (4 * reduced[0] * reduced [2])
+    if delta > 0:
+        if float(2 * reduced[2]) != 0:
+            print ''
+            print 'Discriminant is strictly positive, the two solutions are:'
+            print bcolors.OKBLUE + '    x2 = ' + bcolors.ENDC + str(float(-reduced[1] - squareRoot(delta)) / float(2 * reduced[2])) 
+            print bcolors.OKBLUE + '    x1 = ' + bcolors.ENDC + str(float(-reduced[1] + squareRoot(delta)) / float(2 * reduced[2])) 
+        else:
+            print 'This polynome have no solution'
+    if delta < 0:
+        print 'Discriminant is strictly negative, the two solutions are:'
+        delta *= -1
+        b2a = float(-reduced[1]) / float(2 * reduced[2])
+        rDelta = float(squareRoot(delta)) / float(2 * reduced[2])
+        print bcolors.OKBLUE + '    x2 => ' + bcolors.ENDC + str(b2a) + ' + ' + str(rDelta) + 'i'
+        print bcolors.OKBLUE + '    x1 => ' + bcolors.ENDC + str(b2a) + ' - ' + str(rDelta) + 'i'
+    if delta == 0:
+        print 'Discriminant is nul, the solution is:'
+        print bcolors.OKBLUE + '    x1 = ' + bcolors.ENDC + str(-(reduced[1] / (2 * reduced[2])))
+    return
+
+def firstDegree(reduced):
+    print ''
+    print 'Discriminant is 1, the solution is:'
+    print bcolors.OKBLUE + '    x1 = ' + bcolors.ENDC + str(-(reduced[0] / reduced[1]))
+
+def degreeCalc(reduced):
+    rtn = 0
+    i = -1
+    for value in reduced:
+        i += 1
+        if float(value) != 0:
+            rtn = i
+    return rtn
+
+def computorv1(firstPart, secondPart):
+    if str(firstPart).strip() == str(secondPart).strip():
+        print 'Infinite number of solution'
+        return
+    biggerLength = len(firstPart) if (len(firstPart) > len(secondPart)) else len(secondPart)
+    reduced = []
+    i = 0
+    while i < biggerLength:
+        if 0 <= i < len(firstPart):
+            firstValue = firstPart[i]
+        else:
+            firstValue = 0
+        if 0 <= i < len(secondPart):
+            secondValue = secondPart[i]
+        else:
+            secondValue = 0
+        i += 1
+        reduced.append(firstValue - secondValue)
+    reducedStr = inverseParse(reduced)
+    print 'Reduced form: ' + reducedStr
+    if reducedStr.count('X')  == 1:
+        print 'There is no solution'
+        return
+    degree = degreeCalc(reduced)
+    if degree > 0:
+        print ''
+        print 'Polynomial degree: ' + bcolors.OKGREEN + str(degree) + bcolors.ENDC
+    if degree >= 3:
+        print 'The polynomial degree is stricly greater than 2, I can\'t solve.'
+    if degree == 2:
+        secondDegree(reduced)
+    if degree == 1:
+        firstDegree(reduced)
+
+def computor():
+    newArg = sys.argv[1]
+    if len(newArg.strip()):
+        firstPart = parseValue(newArg.split('=')[0])
+        secondPart = parseValue(newArg.split('=')[1])
+        computorv1(firstPart, secondPart)
+
+if len(sys.argv) >= 2 :
+    computor()
